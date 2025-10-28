@@ -1,6 +1,7 @@
 
+Requirements : ProblemStatement.png
 
-Components Interaction:
+## Components Interaction:
 1. Terraform provisions GKE cluster and infrastructure
 2. Docker image is built and pushed to Container Registry
 3. Helm deploys application with HPA configuration
@@ -9,9 +10,9 @@ Components Interaction:
 6. Load testing generates traffic to trigger autoscaling
 
 
-Prerequisites Setup:
+## Prerequisites Setup:
 
-Tools -- 
+## Tools -- 
 
 # Install Google Cloud SDK
 curl https://sdk.cloud.google.com | bash
@@ -36,7 +37,7 @@ sudo usermod -aG docker $USER
 
 
 
-Google Cloud --
+## Google Cloud --
 
 # Login to GCP
 gcloud auth login
@@ -66,14 +67,14 @@ docker build -t gcr.io/$PROJECT_ID/web-app:1.0 .
 docker push gcr.io/$PROJECT_ID/web-app:1.0
 
 
-Deploy via terraform --
+## Deploy via terraform --
 
 cd terraform
 terraform init
 terraform plan
 terraform apply
 
-Validate --
+## Validate --
 # Get cluster credentials
 gcloud container clusters get-credentials web-app-cluster --region us-central1 --project $PROJECT_ID
 
@@ -90,7 +91,7 @@ kubectl get services
 kubectl get hpa
 
 
-Testing --
+## Testing --
 
 # Get the external IP
 EXTERNAL_IP=$(kubectl get service web-app-service -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
@@ -103,7 +104,7 @@ curl http://$EXTERNAL_IP/health
 curl http://$EXTERNAL_IP/config
 
 
-Load Testing --
+## Load Testing --
 
 # Test CPU intensive endpoint
 curl http://$EXTERNAL_IP/cpu-intensive
