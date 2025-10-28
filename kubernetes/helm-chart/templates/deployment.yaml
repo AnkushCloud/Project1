@@ -13,6 +13,9 @@ spec:
     metadata:
       labels:
         app: {{ .Chart.Name }}
+      annotations:
+        config.version: "{{ .Chart.Version }}"
+        build.timestamp: "{{ now | date "2006-01-02T15:04:05Z07:00" }}"
     spec:
       containers:
       - name: {{ .Chart.Name }}
@@ -22,6 +25,26 @@ spec:
         - containerPort: 8080
         resources:
           {{- toYaml .Values.resources | nindent 12 }}
+        
+        # Environment variables from ConfigMap
+        env:
+        - name: APP_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: {{ .Chart.Name }}-config
+              key: APP_NAME
+        - name: DEPLOYMENT_ENVIRONMENT
+          valueFrom:
+            configMapKeyRef:
+              name: {{ .Chart.Name }}-config
+              key: DEPLOYMENT_ENVIRONMENT
+        
+        # Volume mounts for ConfigMap files
+        volumeMounts:
+        - name: config-volume
+          mountPath: /app/config
+          readOnly: true
+        
         livenessProbe:
           httpGet:
             path: /health
@@ -34,3 +57,10 @@ spec:
             port: 8080
           initialDelaySeconds: 5
           periodSeconds: 5
+      
+      # Volumes definition
+      volumes:
+      - name: config-volume
+        configMap:
+          name: {{ .Chart.Name }}-config
+          defaultMode: 0644

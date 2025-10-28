@@ -1,0 +1,90 @@
+{{- if .Values.configMap.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Chart.Name }}-config
+  labels:
+    app: {{ .Chart.Name }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: {{ .Release.Name }}
+data:
+  # Application configuration
+  app-config.json: |
+    {
+      "app_name": "{{ .Chart.Name }}",
+      "version": "{{ .Chart.AppVersion }}",
+      "environment": "{{ .Values.environment }}",
+      "debug": "{{ .Values.configMap.debug }}",
+      "log_level": "{{ .Values.configMap.logLevel }}"
+    }
+
+  # Nginx configuration for future use
+  nginx.conf: |
+    server {
+        listen 80;
+        server_name _;
+        
+        location / {
+            proxy_pass http://127.0.0.1:8080;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+        }
+        
+        location /health {
+            proxy_pass http://127.0.0.1:8080/health;
+            access_log off;
+        }
+    }
+
+  # Environment-specific settings
+  environment.properties: |
+    # Application Settings
+    APP_NAME={{ .Chart.Name }}
+    APP_VERSION={{ .Chart.AppVersion }}
+    DEPLOYMENT_ENVIRONMENT={{ .Values.environment }}
+    
+    # Feature Flags
+    ENABLE_CPU_INTENSIVE_ROUTE=true
+    ENABLE_MEMORY_INTENSIVE_ROUTE=true
+    MAX_WORKERS=2
+    
+    # Performance Settings
+    REQUEST_TIMEOUT=30
+    MAX_REQUESTS=1000
+
+  # Load test configuration
+  load-test-config.yaml: |
+    load_test:
+      duration: 60
+      concurrent_users: 5
+      endpoints:
+        - path: "/cpu-intensive"
+          weight: 70
+        - path: "/"
+          weight: 20
+        - path: "/memory-intensive"
+          weight: 10
+    
+    monitoring:
+      check_interval: 15
+      success_threshold: 200
+
+  # Custom message that can be displayed by the app
+  welcome-message.txt: |
+    Welcome to {{ .Chart.Name }}!
+    
+    Application Details:
+    - Version: {{ .Chart.AppVersion }}
+    - Environment: {{ .Values.environment }}
+    - Cluster: {{ .Release.Name }}
+    - Deployed at: {{ now | date "2006-01-02T15:04:05Z07:00" }}
+    
+    Available Endpoints:
+    - GET / - Hello World
+    - GET /health - Health check
+    - GET /cpu-intensive - CPU stress test
+    - GET /memory-intensive - Memory stress test
+
+{{- end }}

@@ -23,3 +23,13 @@ autoscaling:
   minReplicas: 1
   maxReplicas: 3
   targetCPUUtilizationPercentage: 50
+
+
+# Environment
+environment: "production"
+
+# ConfigMap Configuration
+configMap:
+  enabled: true
+  debug: false
+  logLevel: "INFO"
