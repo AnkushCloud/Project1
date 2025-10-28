@@ -119,5 +119,5 @@ done
 wait
 
 
-Monitor AutoScaling (real-time) --
+## Monitor AutoScaling (real-time) --
 kubectl get pods -l app=web-app -w
